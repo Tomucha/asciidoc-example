@@ -1,0 +1,24 @@
+= SISTA: Identity management a Rejstřík osob
+:toc:
+:toc-title: Obsah
+:toclevels: 2
+:sectnums:
+:doctype: book
+:chapter-signifier: Kapitola
+t@fnx.io
+
+[preface]
+== O projektu
+
+Dvojice úzce spolupracujících služeb, které mají za úkol spravovat uživatelské účty a osobní údaje pro potřeby SISTA.
+
+=== O dokumentaci
+
+Dokumentace je součástí zdrojových kódů, které jsou uloženy v GIT repozitáři:
+
+Lze ji stavit pomocí Mavenu, příkazem `./mvnw` v adresáři/modulu `docs`.
+Zdrojové soubory dokumentace jsou uloženy v `docs/src/docs/dokumentace.adoc` kam jsou includovány další soubory rozptýlené podle kontextu v dalších částech projektu.
+
+Samostatnou částí dokumentace je popis API, který se generuje pro každou službu zvlášť, obvykle skriptem `generate_docs.sh` umístěným v kořenovém adresáři služby.
+
+include::./imports/architektura.adoc[]

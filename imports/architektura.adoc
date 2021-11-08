@@ -1,0 +1,90 @@
+== Architektura
+
+V této kapitole popíšeme, jakým způsobem je IdM/RO rozděleno do dalších samostatných služeb a kam ukládá svoje data.
+Architekturu zachycuje následující schéma.
+
+[plantuml]
+----
+component notis [
+    <b>Notis
+    Zasílání zpráv uživatelům
+]
+component smtp [
+    <b>SMTP
+    third-party
+]
+component ro [
+    <b>Rejstřík osob
+    Evidence údajů o entitách
+]
+database redis [
+    <b>Redis
+    third-party
+    (využívají v podstatě
+    všechny služby)
+]
+cloud log [
+    <b>papertrail.com
+    third-party
+    cloudová
+    (využívají v podstatě
+    všechny služby)
+]
+
+database sql [
+    <b>PostgreSQL
+    Relační databáze
+    (využívají v podstatě
+    všechny služby)
+]
+
+notis -->  smtp: využívá
+
+ro -->  notis: využívá
+ro -->  log: využívá
+ro -->  redis: využívá
+ro -->  sql: využívá
+
+----
+
+Některé služby jsou využívány v podstatě všemi dalšími službami SISTA – např. relační databáze, nebo auditní logy PaperTrail.
+
+=== Přehled služeb tvořících IdM/RO
+
+Stručně představíme jednotlivé komponenty, ze kterých se IdM/RO skládá a ve zbytku dokumentu pak jednotlivé služby popíšeme podrobně.
+
+==== Notis (notifikční služba)
+
+[plantuml]
+----
+component notis [
+    <b>Notis
+    Zasílání zpráv uživatelům
+]
+----
+
+V rámci agendy SISTA bude potřeba odesílat emaily, SMS, případně i jiné notifikace.
+Sada těchto funkcí je oddělená do samostatné notifikační služby.
+
+
+=== OWASP top 10
+
+A01 Broken Access Control:: Všechny metody API musí být označeny anotací, která určuje požadované oprávnění. Neanotované metody jsou zakázány všem uživatelům. Viz výše.
+
+A02 Cryptographic Failures:: Z cryptografických algorytmů používáme pouze mechanizmus hashování hesla, kde se používá bcrypt. Samotná komunikace mezi služba mi ošetřen není je následně věcí konfigurace Kubernetes clusteru, aby probíhala zabezpečeně. Náhodné klíče (např. autorizační klíč apod.) jsou generovány pomocí java.security.SecureRandom.
+
+A03 Injection:: SQL injection nepřipadá v úvahu díky použité technologii. DFatabázové dotazy jsou sestavovány objektovým modelem, nikoliv jako "stringy", do kterých by bylo možné něco injektovat. Cross site scripting injection také není možné, veškerý obsah, který se do stránek zapisuje, je HTML escapován již na úrovni použité technologie.
+
+A04 Insecure Design:: Viz popis výše, na bezpečnostní otázky byl při návrhu kladen důraz.
+
+A05 Security Misconfiguration:: Je až otázkou provozu.
+
+A06 Vulnerable and Outdated Components:: V okamžiku odevzdání je vše aktuální.
+
+A07 Identification and Authentication Failures:: Brute force útok je zkomplikován náročným hashovacím algoritmem BCrypt v případě hesla a obrovským množstvím možností v případě autorizačního klíče (+ vazba klíče na User-Agent, viz výše), u hesel samotných je během registrace vynucována vysoká entropie.
+
+A08 Software and Data Integrity Failures:: Aktuálně není řešeno, bude nutné řešit současně s budováním produkční infrastruktury.
+
+A09 Security Logging and Monitoring Failures:: Logujeme na serveru a vybrané události i do PaperTrail.
+
+A10 Server Side Request Forgery (SSRF):: Nemáme use-case, který by toto umožňoval.
